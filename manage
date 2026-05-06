@@ -8,8 +8,8 @@ case $1 in
     "update-nginx")
         sudo mkdir -p /etc/nginx/certs &&
         sudo cp nginx.conf /etc/nginx/nginx.conf &&
-        sudo cp .local/certs/fullchain.pem /etc/nginx/certs/fullchain.pem &&
-        sudo cp .local/certs/privkey.pem /etc/nginx/certs/privkey.pem &&
+        # sudo cp .local/certs/fullchain.pem /etc/nginx/certs/fullchain.pem &&
+        # sudo cp .local/certs/privkey.pem /etc/nginx/certs/privkey.pem &&
         sudo systemctl reload nginx
     ;;
     "gen-certificate")
