@@ -1,0 +1,41 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR" || exit 1
+
+args=("${@:2}")
+case $1 in
+    "update-nginx")
+        sudo mkdir -p /etc/nginx/certs &&
+        sudo cp nginx.conf /etc/nginx/nginx.conf &&
+        sudo cp .local/certs/fullchain.pem /etc/nginx/certs/fullchain.pem &&
+        sudo cp .local/certs/privkey.pem /etc/nginx/certs/privkey.pem &&
+        sudo systemctl reload nginx
+    ;;
+    "gen-certificate")
+        CERTDIR=".local/certs"
+        echo $CERTDIR
+        if [ -d "$CERTDIR" ]; then rm -Rf $CERTDIR; fi
+        mkdir $CERTDIR -p
+        openssl genpkey -algorithm RSA -out $CERTDIR/privkey.pem
+        openssl req -new \
+        -key $CERTDIR/privkey.pem \
+        -out $CERTDIR/cert.csr \
+        -subj "/C=BR/ST=Goiás/L=Goiânia/O=genial/OU=genial/CN=genial/emailAddress=genitraveldev@google.com"
+        openssl x509 -req -days 365 -in $CERTDIR/cert.csr -signkey $CERTDIR/privkey.pem -out $CERTDIR/fullchain.pem
+    ;;
+    "deploy")
+        git add . && git commit -m "Deploying to production" && git push origin main
+        ssh renato@medani "cd /home/renato/src/medani-infra && git pull origin main"
+    ;;
+    "letsencrypt")
+        sudo certbot certonly --standalone -d geniteste.in
+    ;;
+    "letsencrypt-renew")
+        sudo certbot renew --standalone
+    ;;
+    *)
+        echo "Command not found: $1"
+    ;;
+esac
+
